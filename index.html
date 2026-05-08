@@ -173,31 +173,38 @@ header { background: var(--card-bg); border-bottom: 1px solid var(--border); pad
 
       <div class="two-col">
         <div class="form-group">
-          <label><span class="lang-de">🇩🇪 German</span> word</label>
-          <input type="text" id="inputWord" placeholder="e.g. der Hund" oninput="onWordInput()" />
-        </div>
-        <div class="form-group">
-          <label><span class="lang-en">🇬🇧 English</span> — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+          <label><span class="lang-de">🇩🇪 German</span> word — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
           <div class="auto-wrap" id="wrapWord">
-            <input type="text" id="inputTranslation" placeholder="waiting for German word…" />
+            <input type="text" id="inputWord" placeholder="e.g. der Hund" oninput="onWordInput()" />
             <div class="spinner"></div>
           </div>
-          <div class="auto-hint">Translated automatically — you can edit</div>
+          <div class="auto-hint">Type German <em>or</em> English — the other fills in</div>
+        </div>
+        <div class="form-group">
+          <label><span class="lang-en">🇬🇧 English</span> translation — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+          <div class="auto-wrap" id="wrapTranslation">
+            <input type="text" id="inputTranslation" placeholder="e.g. the dog" oninput="onTranslationInput()" />
+            <div class="spinner"></div>
+          </div>
+          <div class="auto-hint">Type English <em>or</em> German — the other fills in</div>
         </div>
       </div>
 
       <div class="form-group">
         <label><span class="lang-de">🇩🇪 German</span> example sentence <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">(optional)</em></label>
-        <input type="text" id="inputSentenceDe" placeholder="e.g. Der Hund läuft im Park." oninput="onSentenceInput()" />
+        <div class="auto-wrap" id="wrapSentenceDe">
+          <input type="text" id="inputSentenceDe" placeholder="e.g. Der Hund läuft im Park." oninput="onSentenceDeInput()" />
+          <div class="spinner"></div>
+        </div>
       </div>
 
       <div class="form-group">
         <label><span class="lang-en">🇬🇧 English</span> sentence — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
-        <div class="auto-wrap" id="wrapSentence">
-          <input type="text" id="inputSentenceEn" placeholder="type a German sentence above…" />
+        <div class="auto-wrap" id="wrapSentenceEn">
+          <input type="text" id="inputSentenceEn" placeholder="e.g. The dog runs in the park." oninput="onSentenceEnInput()" />
           <div class="spinner"></div>
         </div>
-        <div class="auto-hint">Translated automatically — you can edit</div>
+        <div class="auto-hint">Translated automatically — you can edit either side</div>
       </div>
 
       <button class="add-btn" onclick="addCard()">+ Add Flashcard</button>
@@ -299,11 +306,10 @@ function switchTab(tab) {
   if (tab === 'cards') renderCards();
 }
 
-async function autoTranslate(text, targetId, wrapId, placeholder) {
+async function autoTranslate(text, targetId, wrapId, direction) {
   if (!text || text.trim().length < 2) {
     const el = document.getElementById(targetId);
     el.value = '';
-    el.placeholder = placeholder;
     return;
   }
   const wrap = document.getElementById(wrapId);
@@ -312,6 +318,10 @@ async function autoTranslate(text, targetId, wrapId, placeholder) {
   el.value = '';
   el.placeholder = 'translating…';
 
+  const prompt = direction === 'de-en'
+    ? `Translate this German text to English. Output ONLY the translation — no explanation, no quotation marks.\n\nGerman: ${text.trim()}`
+    : `Translate this English text to German. Output ONLY the German translation — no explanation, no quotation marks.\n\nEnglish: ${text.trim()}`;
+
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -319,10 +329,7 @@ async function autoTranslate(text, targetId, wrapId, placeholder) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 200,
-        messages: [{
-          role: 'user',
-          content: `Translate this German text to English. Output ONLY the translation — no explanation, no punctuation changes beyond natural English, no quotation marks.\n\nGerman: ${text.trim()}`
-        }]
+        messages: [{ role: 'user', content: prompt }]
       })
     });
     const data = await res.json();
@@ -336,26 +343,39 @@ async function autoTranslate(text, targetId, wrapId, placeholder) {
   }
 }
 
+// Track which field was last typed to avoid feedback loops
+let wordLastEdited = null, sentLastEdited = null;
+
 function onWordInput() {
+  wordLastEdited = 'de';
   clearTimeout(wordTimer);
   const val = document.getElementById('inputWord').value.trim();
-  if (!val) {
-    document.getElementById('inputTranslation').value = '';
-    document.getElementById('inputTranslation').placeholder = 'waiting for German word…';
-    return;
-  }
-  wordTimer = setTimeout(() => autoTranslate(val, 'inputTranslation', 'wrapWord', 'waiting for German word…'), 650);
+  if (!val) { document.getElementById('inputTranslation').value = ''; return; }
+  wordTimer = setTimeout(() => autoTranslate(val, 'inputTranslation', 'wrapTranslation', 'de-en'), 650);
 }
 
-function onSentenceInput() {
+function onTranslationInput() {
+  wordLastEdited = 'en';
+  clearTimeout(wordTimer);
+  const val = document.getElementById('inputTranslation').value.trim();
+  if (!val) { document.getElementById('inputWord').value = ''; return; }
+  wordTimer = setTimeout(() => autoTranslate(val, 'inputWord', 'wrapWord', 'en-de'), 650);
+}
+
+function onSentenceDeInput() {
+  sentLastEdited = 'de';
   clearTimeout(sentTimer);
   const val = document.getElementById('inputSentenceDe').value.trim();
-  if (!val) {
-    document.getElementById('inputSentenceEn').value = '';
-    document.getElementById('inputSentenceEn').placeholder = 'type a German sentence above…';
-    return;
-  }
-  sentTimer = setTimeout(() => autoTranslate(val, 'inputSentenceEn', 'wrapSentence', 'type a German sentence above…'), 650);
+  if (!val) { document.getElementById('inputSentenceEn').value = ''; return; }
+  sentTimer = setTimeout(() => autoTranslate(val, 'inputSentenceEn', 'wrapSentenceEn', 'de-en'), 650);
+}
+
+function onSentenceEnInput() {
+  sentLastEdited = 'en';
+  clearTimeout(sentTimer);
+  const val = document.getElementById('inputSentenceEn').value.trim();
+  if (!val) { document.getElementById('inputSentenceDe').value = ''; return; }
+  sentTimer = setTimeout(() => autoTranslate(val, 'inputSentenceDe', 'wrapSentenceDe', 'en-de'), 650);
 }
 
 function addCard() {
@@ -364,24 +384,28 @@ function addCard() {
   const sentenceDe = document.getElementById('inputSentenceDe').value.trim();
   const sentenceEn = document.getElementById('inputSentenceEn').value.trim();
 
-  if (!word) { showToast('Please enter a German word first.'); return; }
-  if (!translation) {
-    const wrap = document.getElementById('wrapWord');
-    if (wrap.classList.contains('loading')) {
-      showToast('Translation is loading — please wait a moment.'); return;
-    }
-    showToast('Could not auto-translate — please type the English word manually.'); return;
+  const wW = document.getElementById('wrapWord'), wT = document.getElementById('wrapTranslation');
+  if (!word && !translation) { showToast('Please enter a German or English word.'); return; }
+  if (wW.classList.contains('loading') || wT.classList.contains('loading')) {
+    showToast('Translation is loading — please wait a moment.'); return;
+  }
+  if (!word || !translation) {
+    showToast('One field is missing — translation may have failed. Please type it in.'); return;
   }
 
   cards.unshift({ word, translation, sentenceDe, sentenceEn });
   save();
 
-  document.getElementById('inputWord').value = '';
-  document.getElementById('inputTranslation').value = '';
-  document.getElementById('inputTranslation').placeholder = 'waiting for German word…';
-  document.getElementById('inputSentenceDe').value = '';
-  document.getElementById('inputSentenceEn').value = '';
-  document.getElementById('inputSentenceEn').placeholder = 'type a German sentence above…';
+  ['inputWord','inputTranslation','inputSentenceDe','inputSentenceEn'].forEach(id => {
+    document.getElementById(id).value = '';
+    document.getElementById(id).placeholder = {
+      inputWord: 'e.g. der Hund',
+      inputTranslation: 'e.g. the dog',
+      inputSentenceDe: 'e.g. Der Hund läuft im Park.',
+      inputSentenceEn: 'e.g. The dog runs in the park.'
+    }[id];
+  });
+  wordLastEdited = null; sentLastEdited = null;
 
   updateBadge();
   renderRecentList();
