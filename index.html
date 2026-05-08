@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deutsch Lernen · German Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #faf6ef;
+  --card-bg: #fffdf9;
+  --amber: #c8813a;
+  --amber-light: #f0d9bc;
+  --amber-dark: #8a5420;
+  --blue: #2a6a88;
+  --blue-light: #ddeef5;
+  --text-dark: #2d2416;
+  --text-mid: #6b5840;
+  --text-light: #a8937a;
+  --text-xlight: #c9b89e;
+  --border: #e8d9c4;
+  --shadow: 0 8px 40px rgba(100,60,10,0.10), 0 2px 8px rgba(100,60,10,0.07);
+  --shadow-hover: 0 16px 56px rgba(100,60,10,0.14), 0 4px 16px rgba(100,60,10,0.09);
+  --radius: 18px;
+}
+body { background: var(--cream); background-image: radial-gradient(ellipse at 20% 10%, rgba(200,129,58,0.07) 0%, transparent 60%), radial-gradient(ellipse at 80% 90%, rgba(200,129,58,0.05) 0%, transparent 50%); font-family: 'Lato', sans-serif; color: var(--text-dark); min-height: 100vh; padding-bottom: 80px; }
+
+/* HEADER */
+header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 18px 40px; display: flex; align-items: center; gap: 14px; }
+.flag { font-size: 26px; }
+.header-title h1 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--text-dark); }
+.header-title p { font-size: 11px; color: var(--text-light); font-weight: 300; letter-spacing: 0.6px; text-transform: uppercase; margin-top: 2px; }
+.word-badge { margin-left: auto; background: var(--amber-light); color: var(--amber-dark); font-size: 12px; font-weight: 700; padding: 5px 13px; border-radius: 20px; }
+
+/* TABS */
+.tabs-bar { display: flex; max-width: 860px; margin: 24px auto 0; padding: 0 24px; border-bottom: 1.5px solid var(--border); }
+.tab-btn { background: none; border: none; font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-light); padding: 11px 22px; cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; transition: all 0.18s; }
+.tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+.tab-btn:hover:not(.active) { color: var(--text-mid); }
+
+.container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+.tab-panel { display: none; padding-top: 28px; }
+.tab-panel.active { display: block; }
+
+/* ADD CARD FORM */
+.add-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px 34px; box-shadow: var(--shadow); }
+.section-label { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 22px; display: flex; align-items: center; gap: 10px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group label { font-size: 10px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: var(--text-light); }
+.lang-de { color: var(--amber) !important; }
+.lang-en { color: var(--blue) !important; }
+.form-group input { width: 100%; background: var(--cream); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 15px; font-family: 'Lato', sans-serif; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.form-group input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(200,129,58,0.12); }
+.form-group input::placeholder { color: var(--text-xlight); }
+
+/* AUTO FIELD */
+.auto-wrap { position: relative; }
+.auto-wrap input { padding-right: 42px; background: #f7f3ee; border-style: dashed; color: var(--text-mid); font-style: italic; }
+.auto-wrap input:not([value=""]):not([placeholder="auto-translating…"]) { font-style: normal; }
+.spinner { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border: 2px solid var(--amber-light); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+.auto-wrap.loading .spinner { display: block; }
+.auto-wrap.loading input { border-color: var(--amber); }
+.auto-hint { font-size: 10px; color: var(--text-xlight); margin-top: 4px; font-style: italic; }
+
+.add-btn { width: 100%; margin-top: 20px; background: var(--amber); color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+.add-btn:hover { background: var(--amber-dark); }
+.add-btn:active { transform: scale(0.99); }
+
+/* RECENT */
+.recent-section { margin-top: 28px; }
+.recent-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-light); margin-bottom: 12px; }
+.recent-list { display: flex; flex-direction: column; gap: 8px; }
+.recent-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.r-word { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--text-dark); min-width: 110px; }
+.r-arrow { color: var(--text-xlight); }
+.r-trans { font-size: 14px; color: var(--blue); }
+.r-del { margin-left: auto; background: none; border: none; color: var(--text-xlight); cursor: pointer; font-size: 15px; padding: 4px 6px; border-radius: 6px; transition: color 0.15s; }
+.r-del:hover { color: #d44; }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 70px 20px; color: var(--text-light); }
+.empty-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.4; }
+.empty-state p { font-size: 16px; font-weight: 300; }
+
+/* NAV */
+.cards-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.nav-btn { background: var(--card-bg); border: 1px solid var(--border); border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: var(--text-mid); transition: all 0.18s; }
+.nav-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.card-indicator { font-size: 13px; color: var(--text-light); font-weight: 300; }
+.card-indicator strong { color: var(--text-dark); font-weight: 700; }
+
+/* FLIP CARD */
+.card-scene { perspective: 1200px; }
+.card-flip-wrap { width: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4,0.2,0.2,1); cursor: pointer; }
+.card-flip-wrap.flipped { transform: rotateY(180deg); }
+.card-face { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 38px 44px; box-shadow: var(--shadow); transition: box-shadow 0.2s; backface-visibility: hidden; -webkit-backface-visibility: hidden; min-height: 290px; }
+.card-face:hover { box-shadow: var(--shadow-hover); }
+.card-back { position: absolute; top: 0; left: 0; right: 0; transform: rotateY(180deg); }
+
+.card-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 20px; }
+.tag-de { background: var(--amber-light); color: var(--amber-dark); }
+.tag-en { background: var(--blue-light); color: var(--blue); }
+
+.german-word-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.german-word { font-family: 'Playfair Display', serif; font-size: 50px; font-weight: 700; color: var(--text-dark); letter-spacing: -1px; line-height: 1.1; }
+.translation-big { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 400; color: var(--blue); letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 6px; }
+.word-hint { font-size: 13px; color: var(--text-xlight); font-weight: 300; font-style: italic; margin-bottom: 26px; }
+
+.speak-btn { background: none; border: 1.5px solid var(--border); border-radius: 50%; width: 33px; height: 33px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.18s; flex-shrink: 0; }
+.speak-btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+.speak-btn.speaking { border-color: var(--amber); color: var(--amber); background: var(--amber-light); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(200,129,58,0.3); } 50% { box-shadow: 0 0 0 6px rgba(200,129,58,0); } }
+.speak-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.sentence-block { border-top: 1px solid var(--border); padding-top: 20px; }
+.sentence-de-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 7px; }
+.sentence-de { font-size: 18px; font-family: 'Playfair Display', serif; font-weight: 600; color: var(--text-dark); line-height: 1.55; }
+.sentence-en { font-size: 14px; color: var(--text-xlight); font-weight: 300; font-style: italic; line-height: 1.6; }
+.flip-hint { font-size: 11px; color: var(--text-xlight); text-align: center; margin-top: 18px; letter-spacing: 0.4px; font-weight: 300; }
+
+.progress-dots { display: flex; justify-content: center; gap: 7px; margin-top: 18px; flex-wrap: wrap; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.18s; }
+.dot.active { background: var(--amber); transform: scale(1.3); }
+.dot:hover:not(.active) { background: var(--text-xlight); }
+
+.card-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+.delete-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-family: 'Lato', sans-serif; color: var(--text-light); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.18s; }
+.delete-btn:hover { border-color: #d44; color: #d44; background: #fff0f0; }
+
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text-dark); color: #fff; padding: 10px 22px; border-radius: 25px; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.28s; z-index: 999; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 600px) {
+  header { padding: 14px 18px; }
+  .container { padding: 0 14px; }
+  .tabs-bar { padding: 0 14px; }
+  .add-card { padding: 22px 18px; }
+  .two-col { grid-template-columns: 1fr; }
+  .card-face { padding: 26px 22px; }
+  .german-word { font-size: 36px; }
+  .translation-big { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="flag">🇩🇪</div>
+  <div class="header-title">
+    <h1>Deutsch Lernen</h1>
+    <p>German Vocabulary Flashcards</p>
+  </div>
+  <div class="word-badge" id="wordBadge">0 words</div>
+</header>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('add')">✏️&nbsp; Add Words</button>
+  <button class="tab-btn" onclick="switchTab('cards')">🃏&nbsp; Flashcards</button>
+</div>
+
+<div class="container">
+
+  <!-- ADD TAB -->
+  <div class="tab-panel active" id="tab-add">
+    <div class="add-card">
+      <div class="section-label">Add a new word</div>
+
+      <div class="two-col">
+        <div class="form-group">
+          <label><span class="lang-de">🇩🇪 German</span> word</label>
+          <input type="text" id="inputWord" placeholder="e.g. der Hund" oninput="onWordInput()" />
+        </div>
+        <div class="form-group">
+          <label><span class="lang-en">🇬🇧 English</span> — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+          <div class="auto-wrap" id="wrapWord">
+            <input type="text" id="inputTranslation" placeholder="waiting for German word…" />
+            <div class="spinner"></div>
+          </div>
+          <div class="auto-hint">Translated automatically — you can edit</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label><span class="lang-de">🇩🇪 German</span> example sentence <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">(optional)</em></label>
+        <input type="text" id="inputSentenceDe" placeholder="e.g. Der Hund läuft im Park." oninput="onSentenceInput()" />
+      </div>
+
+      <div class="form-group">
+        <label><span class="lang-en">🇬🇧 English</span> sentence — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+        <div class="auto-wrap" id="wrapSentence">
+          <input type="text" id="inputSentenceEn" placeholder="type a German sentence above…" />
+          <div class="spinner"></div>
+        </div>
+        <div class="auto-hint">Translated automatically — you can edit</div>
+      </div>
+
+      <button class="add-btn" onclick="addCard()">+ Add Flashcard</button>
+    </div>
+
+    <div class="recent-section" id="recentSection" style="display:none;">
+      <div class="recent-label">Recently added</div>
+      <div class="recent-list" id="recentList"></div>
+    </div>
+  </div>
+
+  <!-- FLASHCARDS TAB -->
+  <div class="tab-panel" id="tab-cards">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📖</div>
+      <p>No cards yet — head to <strong>Add Words</strong> to get started!</p>
+    </div>
+
+    <div id="flashcardArea" style="display:none;">
+      <div class="cards-nav">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">&#8592;</button>
+        <span class="card-indicator">Card <strong id="currentNum">1</strong> of <strong id="totalNum">1</strong></span>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)">&#8594;</button>
+      </div>
+
+      <div class="card-scene">
+        <div class="card-flip-wrap" id="cardFlip" onclick="flipCard()">
+          <!-- FRONT: German -->
+          <div class="card-face card-front">
+            <div class="card-tag tag-de">🇩🇪 Deutsch</div>
+            <div class="german-word-row">
+              <div class="german-word" id="cardWord">—</div>
+              <button class="speak-btn" id="speakWord" onclick="event.stopPropagation();speakText('word')" title="Hear word">
+                <svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+            </div>
+            <div class="word-hint">tap card to reveal translation</div>
+            <div class="sentence-block" id="sentFront">
+              <div class="sentence-de-row">
+                <button class="speak-btn" id="speakSentence" onclick="event.stopPropagation();speakText('sentence')" title="Hear sentence">
+                  <svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </button>
+                <div class="sentence-de" id="cardSentenceDe"></div>
+              </div>
+              <div class="sentence-en" id="cardSentenceEn"></div>
+            </div>
+            <div class="flip-hint">Tap to reveal →</div>
+          </div>
+          <!-- BACK: English -->
+          <div class="card-face card-back">
+            <div class="card-tag tag-en">🇬🇧 English</div>
+            <div class="translation-big" id="cardTranslation">—</div>
+            <div class="word-hint">translation</div>
+            <div class="sentence-block" id="sentBack">
+              <div class="sentence-de-row">
+                <button class="speak-btn" onclick="event.stopPropagation();speakText('sentence')" title="Hear sentence">
+                  <svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </button>
+                <div class="sentence-de" id="cardSentenceDeBack"></div>
+              </div>
+              <div class="sentence-en" id="cardSentenceEnBack"></div>
+            </div>
+            <div class="flip-hint">← Tap to flip back</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-dots" id="progressDots"></div>
+      <div class="card-actions">
+        <button class="delete-btn" onclick="deleteCard()">🗑 Delete card</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let cards = JSON.parse(localStorage.getItem('de_flash_v2') || '[]');
+let current = 0;
+let isFlipped = false;
+let wordTimer = null, sentTimer = null;
+
+function save() { localStorage.setItem('de_flash_v2', JSON.stringify(cards)); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (tab==='add'&&i===0)||(tab==='cards'&&i===1));
+  });
+  document.getElementById('tab-add').classList.toggle('active', tab==='add');
+  document.getElementById('tab-cards').classList.toggle('active', tab==='cards');
+  if (tab === 'cards') renderCards();
+}
+
+async function autoTranslate(text, targetId, wrapId, placeholder) {
+  if (!text || text.trim().length < 2) {
+    const el = document.getElementById(targetId);
+    el.value = '';
+    el.placeholder = placeholder;
+    return;
+  }
+  const wrap = document.getElementById(wrapId);
+  const el = document.getElementById(targetId);
+  wrap.classList.add('loading');
+  el.value = '';
+  el.placeholder = 'translating…';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: `Translate this German text to English. Output ONLY the translation — no explanation, no punctuation changes beyond natural English, no quotation marks.\n\nGerman: ${text.trim()}`
+        }]
+      })
+    });
+    const data = await res.json();
+    const result = data.content?.[0]?.text?.trim() || '';
+    el.value = result;
+    el.placeholder = '';
+  } catch(e) {
+    el.placeholder = 'could not translate — type manually';
+  } finally {
+    wrap.classList.remove('loading');
+  }
+}
+
+function onWordInput() {
+  clearTimeout(wordTimer);
+  const val = document.getElementById('inputWord').value.trim();
+  if (!val) {
+    document.getElementById('inputTranslation').value = '';
+    document.getElementById('inputTranslation').placeholder = 'waiting for German word…';
+    return;
+  }
+  wordTimer = setTimeout(() => autoTranslate(val, 'inputTranslation', 'wrapWord', 'waiting for German word…'), 650);
+}
+
+function onSentenceInput() {
+  clearTimeout(sentTimer);
+  const val = document.getElementById('inputSentenceDe').value.trim();
+  if (!val) {
+    document.getElementById('inputSentenceEn').value = '';
+    document.getElementById('inputSentenceEn').placeholder = 'type a German sentence above…';
+    return;
+  }
+  sentTimer = setTimeout(() => autoTranslate(val, 'inputSentenceEn', 'wrapSentence', 'type a German sentence above…'), 650);
+}
+
+function addCard() {
+  const word = document.getElementById('inputWord').value.trim();
+  const translation = document.getElementById('inputTranslation').value.trim();
+  const sentenceDe = document.getElementById('inputSentenceDe').value.trim();
+  const sentenceEn = document.getElementById('inputSentenceEn').value.trim();
+
+  if (!word) { showToast('Please enter a German word first.'); return; }
+  if (!translation) {
+    const wrap = document.getElementById('wrapWord');
+    if (wrap.classList.contains('loading')) {
+      showToast('Translation is loading — please wait a moment.'); return;
+    }
+    showToast('Could not auto-translate — please type the English word manually.'); return;
+  }
+
+  cards.unshift({ word, translation, sentenceDe, sentenceEn });
+  save();
+
+  document.getElementById('inputWord').value = '';
+  document.getElementById('inputTranslation').value = '';
+  document.getElementById('inputTranslation').placeholder = 'waiting for German word…';
+  document.getElementById('inputSentenceDe').value = '';
+  document.getElementById('inputSentenceEn').value = '';
+  document.getElementById('inputSentenceEn').placeholder = 'type a German sentence above…';
+
+  updateBadge();
+  renderRecentList();
+  showToast('✓ Added: ' + word);
+  document.getElementById('inputWord').focus();
+}
+
+function updateBadge() {
+  const c = cards.length;
+  document.getElementById('wordBadge').textContent = c + (c===1?' word':' words');
+}
+
+function renderRecentList() {
+  const section = document.getElementById('recentSection');
+  const list = document.getElementById('recentList');
+  if (cards.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = cards.slice(0, 6).map((c, i) => `
+    <div class="recent-item">
+      <span class="r-word">${escHtml(c.word)}</span>
+      <span class="r-arrow">→</span>
+      <span class="r-trans">${escHtml(c.translation)}</span>
+      <button class="r-del" onclick="removeCard(${i})" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function removeCard(idx) {
+  cards.splice(idx, 1);
+  save(); updateBadge(); renderRecentList();
+  if (document.getElementById('tab-cards').classList.contains('active')) renderCards();
+}
+
+function renderCards() {
+  const count = cards.length;
+  document.getElementById('emptyState').style.display = count === 0 ? '' : 'none';
+  document.getElementById('flashcardArea').style.display = count === 0 ? 'none' : '';
+  if (count === 0) return;
+  if (current >= count) current = count - 1;
+  isFlipped = false;
+  document.getElementById('cardFlip').classList.remove('flipped');
+
+  const c = cards[current];
+  document.getElementById('cardWord').textContent = c.word;
+  document.getElementById('cardTranslation').textContent = c.translation;
+  const hasSent = !!c.sentenceDe;
+  document.getElementById('cardSentenceDe').textContent = c.sentenceDe || '';
+  document.getElementById('cardSentenceEn').textContent = c.sentenceEn || '';
+  document.getElementById('cardSentenceDeBack').textContent = c.sentenceDe || '';
+  document.getElementById('cardSentenceEnBack').textContent = c.sentenceEn || '';
+  document.getElementById('sentFront').style.display = hasSent ? '' : 'none';
+  document.getElementById('sentBack').style.display = hasSent ? '' : 'none';
+
+  document.getElementById('currentNum').textContent = current + 1;
+  document.getElementById('totalNum').textContent = count;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === count - 1;
+
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = '';
+  for (let i = 0; i < Math.min(count, 30); i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : '');
+    const idx = i;
+    d.onclick = () => { current = idx; renderCards(); };
+    dots.appendChild(d);
+  }
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('cardFlip').classList.toggle('flipped', isFlipped);
+}
+
+function navigate(dir) { current += dir; renderCards(); }
+
+function deleteCard() {
+  if (!confirm('Delete this card?')) return;
+  cards.splice(current, 1);
+  save(); updateBadge(); renderRecentList(); renderCards();
+  showToast('Card deleted.');
+}
+
+function speakText(type) {
+  if (!window.speechSynthesis) { showToast('Speech not supported in this browser.'); return; }
+  const c = cards[current];
+  const text = type === 'word' ? c.word : c.sentenceDe;
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const btnId = type === 'word' ? 'speakWord' : 'speakSentence';
+  const btn = document.getElementById(btnId);
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'de-DE'; utter.rate = 0.88;
+  const voices = window.speechSynthesis.getVoices();
+  const deVoice = voices.find(v => v.lang.startsWith('de'));
+  if (deVoice) utter.voice = deVoice;
+  btn && btn.classList.add('speaking');
+  utter.onend = () => btn && btn.classList.remove('speaking');
+  utter.onerror = () => btn && btn.classList.remove('speaking');
+  window.speechSynthesis.speak(utter);
+}
+
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (!document.getElementById('tab-cards').classList.contains('active')) return;
+  if (e.key === 'ArrowRight' && current < cards.length-1) navigate(1);
+  if (e.key === 'ArrowLeft' && current > 0) navigate(-1);
+  if (e.key === ' ') { e.preventDefault(); flipCard(); }
+});
+
+window.speechSynthesis.onvoiceschanged = () => {};
+updateBadge();
+renderRecentList();
+</script>
+</body>
+</html>
