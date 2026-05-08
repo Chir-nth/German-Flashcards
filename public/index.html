@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deutsch Lernen · German Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #faf6ef;
+  --card-bg: #fffdf9;
+  --amber: #c8813a;
+  --amber-light: #f0d9bc;
+  --amber-dark: #8a5420;
+  --blue: #2a6a88;
+  --blue-light: #ddeef5;
+  --text-dark: #2d2416;
+  --text-mid: #6b5840;
+  --text-light: #a8937a;
+  --text-xlight: #c9b89e;
+  --border: #e8d9c4;
+  --shadow: 0 8px 40px rgba(100,60,10,0.10), 0 2px 8px rgba(100,60,10,0.07);
+  --shadow-lg: 0 24px 80px rgba(100,60,10,0.18), 0 8px 24px rgba(100,60,10,0.10);
+  --radius: 18px;
+}
+body { background: var(--cream); background-image: radial-gradient(ellipse at 20% 10%, rgba(200,129,58,0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 90%, rgba(200,129,58,0.05) 0%, transparent 50%); font-family: 'Lato', sans-serif; color: var(--text-dark); min-height: 100vh; }
+
+/* ── PAGES ── */
+#authPage { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, #faf0e2 0%, #f5e8d0 100%); }
+#authPage.show { display: flex; }
+#appPage { display: none; min-height: 100vh; padding-bottom: 80px; }
+#appPage.show { display: block; }
+
+/* ── AUTH ── */
+.auth-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 44px 48px; width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); }
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-logo .flag { font-size: 42px; display: block; margin-bottom: 10px; }
+.auth-logo h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; }
+.auth-logo p { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 300; margin-top: 4px; }
+.auth-tabs { display: flex; border-bottom: 1.5px solid var(--border); margin-bottom: 28px; }
+.auth-tab { flex: 1; background: none; border: none; font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-light); padding: 10px; cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; transition: all 0.18s; }
+.auth-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.auth-group { margin-bottom: 16px; }
+.auth-group label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
+.auth-group input { width: 100%; background: var(--cream); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 15px; font-family: 'Lato', sans-serif; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.auth-group input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(200,129,58,0.12); }
+.auth-group input::placeholder { color: var(--text-xlight); }
+.auth-btn { width: 100%; margin-top: 6px; background: var(--amber); color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+.auth-btn:hover { background: var(--amber-dark); }
+.auth-btn:disabled { background: var(--text-xlight); cursor: not-allowed; }
+.auth-err { background: #fff0f0; border: 1px solid #f5c0c0; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c0392b; margin-bottom: 14px; display: none; }
+.auth-err.show { display: block; }
+
+/* ── HEADER ── */
+header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 16px 40px; display: flex; align-items: center; gap: 14px; }
+.h-flag { font-size: 24px; }
+.h-title h1 { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; }
+.h-title p { font-size: 11px; color: var(--text-light); font-weight: 300; letter-spacing: 0.6px; text-transform: uppercase; margin-top: 1px; }
+.h-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.user-pill { display: flex; align-items: center; gap: 8px; background: var(--amber-light); border-radius: 20px; padding: 5px 14px 5px 8px; }
+.user-av { width: 26px; height: 26px; border-radius: 50%; background: var(--amber); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.user-nm { font-size: 13px; font-weight: 700; color: var(--amber-dark); }
+.badge { background: var(--amber-light); color: var(--amber-dark); font-size: 12px; font-weight: 700; padding: 5px 13px; border-radius: 20px; }
+.logout-btn { background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 13px; font-size: 12px; font-family: 'Lato', sans-serif; color: var(--text-light); cursor: pointer; transition: all 0.18s; }
+.logout-btn:hover { border-color: #d44; color: #d44; background: #fff0f0; }
+
+/* ── TABS ── */
+.tabs-bar { display: flex; max-width: 860px; margin: 22px auto 0; padding: 0 24px; border-bottom: 1.5px solid var(--border); }
+.tab-btn { background: none; border: none; font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-light); padding: 11px 22px; cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; transition: all 0.18s; }
+.tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+.tab-btn:hover:not(.active) { color: var(--text-mid); }
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+.tab-panel { display: none; padding-top: 28px; }
+.tab-panel.active { display: block; }
+
+/* ── ADD FORM ── */
+.form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px 34px; box-shadow: var(--shadow); }
+.sec-label { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; }
+.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.fg label { font-size: 10px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: var(--text-light); }
+.de { color: var(--amber) !important; }
+.en { color: var(--blue) !important; }
+.fg input { width: 100%; background: var(--cream); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 15px; font-family: 'Lato', sans-serif; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.fg input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(200,129,58,0.12); }
+.fg input::placeholder { color: var(--text-xlight); }
+.aw { position: relative; }
+.aw input { padding-right: 42px; background: #f7f3ee; border-style: dashed; }
+.aw-spin { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border: 2px solid var(--amber-light); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+.aw.loading .aw-spin { display: block; }
+.aw.loading input { border-color: var(--amber); }
+.hint { font-size: 10px; color: var(--text-xlight); margin-top: 4px; font-style: italic; }
+.save-btn { width: 100%; margin-top: 20px; background: var(--amber); color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+.save-btn:hover { background: var(--amber-dark); }
+.save-btn:disabled { background: var(--text-xlight); cursor: not-allowed; }
+.save-btn .bspin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin2 0.7s linear infinite; display: none; flex-shrink: 0; }
+@keyframes spin2 { to { transform: rotate(360deg); } }
+.save-btn.busy .bspin { display: block; }
+
+/* ── RECENT ── */
+.rec-sec { margin-top: 28px; }
+.rec-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-light); margin-bottom: 12px; }
+.rec-list { display: flex; flex-direction: column; gap: 8px; }
+.rec-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; } }
+.ri-word { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; min-width: 110px; }
+.ri-arr { color: var(--text-xlight); }
+.ri-tr { font-size: 14px; color: var(--blue); flex: 1; }
+.ri-del { background: none; border: none; color: var(--text-xlight); cursor: pointer; font-size: 15px; padding: 4px 8px; border-radius: 6px; transition: color 0.15s; }
+.ri-del:hover { color: #d44; }
+
+/* ── FLASHCARDS ── */
+.fc-loading { text-align: center; padding: 60px 20px; color: var(--text-light); }
+.ring { width: 32px; height: 32px; border: 3px solid var(--amber-light); border-top-color: var(--amber); border-radius: 50%; animation: spin2 0.7s linear infinite; margin: 0 auto 14px; }
+.empty { text-align: center; padding: 70px 20px; }
+.empty-ico { font-size: 52px; margin-bottom: 16px; opacity: 0.4; }
+.empty p { font-size: 16px; color: var(--text-light); font-weight: 300; }
+.fc-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.nav-btn { background: var(--card-bg); border: 1px solid var(--border); border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: var(--text-mid); transition: all 0.18s; }
+.nav-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.fc-count { font-size: 13px; color: var(--text-light); font-weight: 300; }
+.fc-count strong { color: var(--text-dark); font-weight: 700; }
+.scene { perspective: 1200px; }
+.flipper { width: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4,0.2,0.2,1); cursor: pointer; }
+.flipper.flipped { transform: rotateY(180deg); }
+.face { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 38px 44px; box-shadow: var(--shadow); backface-visibility: hidden; -webkit-backface-visibility: hidden; min-height: 290px; transition: box-shadow 0.2s; }
+.face:hover { box-shadow: 0 16px 56px rgba(100,60,10,0.14); }
+.face-back { position: absolute; top: 0; left: 0; right: 0; transform: rotateY(180deg); }
+.ctag { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 20px; }
+.tde { background: var(--amber-light); color: var(--amber-dark); }
+.ten { background: var(--blue-light); color: var(--blue); }
+.word-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.big-w { font-family: 'Playfair Display', serif; font-size: 50px; font-weight: 700; color: var(--text-dark); letter-spacing: -1px; line-height: 1.1; }
+.big-t { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 400; color: var(--blue); letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 6px; }
+.c-hint { font-size: 13px; color: var(--text-xlight); font-weight: 300; font-style: italic; margin-bottom: 26px; }
+.spk { background: none; border: 1.5px solid var(--border); border-radius: 50%; width: 33px; height: 33px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.18s; flex-shrink: 0; }
+.spk:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+.spk.on { border-color: var(--amber); color: var(--amber); background: var(--amber-light); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(200,129,58,0.3); } 50% { box-shadow: 0 0 0 6px rgba(200,129,58,0); } }
+.spk svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.sent-block { border-top: 1px solid var(--border); padding-top: 20px; }
+.sent-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 7px; }
+.sent-de { font-size: 18px; font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.55; }
+.sent-en { font-size: 14px; color: var(--text-xlight); font-weight: 300; font-style: italic; line-height: 1.6; }
+.f-hint { font-size: 11px; color: var(--text-xlight); text-align: center; margin-top: 18px; letter-spacing: 0.4px; font-weight: 300; }
+.dots { display: flex; justify-content: center; gap: 7px; margin-top: 18px; flex-wrap: wrap; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.18s; }
+.dot.on { background: var(--amber); transform: scale(1.3); }
+.dot:hover:not(.on) { background: var(--text-xlight); }
+.fc-foot { display: flex; justify-content: flex-end; margin-top: 14px; }
+.del-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-family: 'Lato', sans-serif; color: var(--text-light); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.18s; }
+.del-btn:hover { border-color: #d44; color: #d44; background: #fff0f0; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text-dark); color: #fff; padding: 10px 22px; border-radius: 25px; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.28s; z-index: 9999; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 600px) {
+  header { padding: 12px 16px; }
+  .user-nm { display: none; }
+  .wrap, .tabs-bar { padding: 0 14px; }
+  .auth-box { padding: 32px 22px; }
+  .form-card { padding: 22px 18px; }
+  .two-col { grid-template-columns: 1fr; }
+  .face { padding: 26px 22px; }
+  .big-w { font-size: 36px; }
+  .big-t { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH PAGE -->
+<div id="authPage" class="show">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="flag">🇩🇪</span>
+      <h1>Deutsch Lernen</h1>
+      <p>German Flashcard App</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="authTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="authTab('register')">Create Account</button>
+    </div>
+    <div class="auth-form active" id="fLogin">
+      <div class="auth-err" id="eLogin"></div>
+      <div class="auth-group"><label>Username</label><input id="lUser" type="text" placeholder="your username" autocomplete="username" /></div>
+      <div class="auth-group"><label>Password</label><input id="lPass" type="password" placeholder="••••••••" autocomplete="current-password" /></div>
+      <button class="auth-btn" id="btnLogin" onclick="doLogin()">Sign In</button>
+    </div>
+    <div class="auth-form" id="fReg">
+      <div class="auth-err" id="eReg"></div>
+      <div class="auth-group"><label>Display Name</label><input id="rName" type="text" placeholder="e.g. Anna" /></div>
+      <div class="auth-group"><label>Username</label><input id="rUser" type="text" placeholder="choose a username" autocomplete="username" /></div>
+      <div class="auth-group"><label>Password <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:10px;">— min 6 chars</span></label><input id="rPass" type="password" placeholder="••••••••" autocomplete="new-password" /></div>
+      <button class="auth-btn" id="btnReg" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP PAGE -->
+<div id="appPage">
+  <header>
+    <div class="h-flag">🇩🇪</div>
+    <div class="h-title"><h1>Deutsch Lernen</h1><p>German Vocabulary Flashcards</p></div>
+    <div class="h-right">
+      <div class="user-pill"><div class="user-av" id="uAv">?</div><span class="user-nm" id="uNm"></span></div>
+      <div class="badge" id="wBadge">0 words</div>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="goTab('add')">✏️&nbsp; Add Words</button>
+    <button class="tab-btn" onclick="goTab('cards')">🃏&nbsp; Flashcards</button>
+  </div>
+  <div class="wrap">
+
+    <!-- ADD TAB -->
+    <div class="tab-panel active" id="tAdd">
+      <div class="form-card">
+        <div class="sec-label">Add a new word</div>
+        <div class="two-col">
+          <div class="fg">
+            <label><span class="de">🇩🇪 German</span> — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+            <div class="aw" id="awDE"><input type="text" id="iDE" placeholder="e.g. der Hund" oninput="onDE()" /><div class="aw-spin"></div></div>
+          </div>
+          <div class="fg">
+            <label><span class="en">🇬🇧 English</span> — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+            <div class="aw" id="awEN"><input type="text" id="iEN" placeholder="e.g. the dog" oninput="onEN()" /><div class="aw-spin"></div></div>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:-8px;margin-bottom:14px;">Type in German <em>or</em> English — the other fills in automatically</div>
+        <div class="fg">
+          <label><span class="de">🇩🇪 German</span> sentence <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">(optional)</em></label>
+          <div class="aw" id="awSDE"><input type="text" id="iSDE" placeholder="e.g. Der Hund läuft im Park." oninput="onSDE()" /><div class="aw-spin"></div></div>
+        </div>
+        <div class="fg">
+          <label><span class="en">🇬🇧 English</span> sentence — <em style="font-weight:300;font-style:italic;text-transform:none;letter-spacing:0;font-size:10px;">auto-translated</em></label>
+          <div class="aw" id="awSEN"><input type="text" id="iSEN" placeholder="e.g. The dog runs in the park." oninput="onSEN()" /><div class="aw-spin"></div></div>
+          <div class="hint">Type either side — the other translates automatically</div>
+        </div>
+        <button class="save-btn" id="saveBtn" onclick="addCard()">
+          <div class="bspin"></div><span id="saveLbl">+ Add Flashcard</span>
+        </button>
+      </div>
+      <div id="recSec" style="display:none;" class="rec-sec">
+        <div class="rec-lbl">Recently added</div>
+        <div class="rec-list" id="recList"></div>
+      </div>
+    </div>
+
+    <!-- CARDS TAB -->
+    <div class="tab-panel" id="tCards">
+      <div class="fc-loading" id="fcLoad"><div class="ring"></div><p>Loading your cards…</p></div>
+      <div class="empty" id="fcEmpty" style="display:none;"><div class="empty-ico">📖</div><p>No cards yet — add words in the <strong>Add Words</strong> tab!</p></div>
+      <div id="fcArea" style="display:none;">
+        <div class="fc-nav">
+          <button class="nav-btn" id="btnPrev" onclick="nav(-1)">&#8592;</button>
+          <span class="fc-count">Card <strong id="cNum">1</strong> of <strong id="cTot">1</strong></span>
+          <button class="nav-btn" id="btnNext" onclick="nav(1)">&#8594;</button>
+        </div>
+        <div class="scene">
+          <div class="flipper" id="flipper" onclick="flip()">
+            <div class="face">
+              <div class="ctag tde">🇩🇪 Deutsch</div>
+              <div class="word-row">
+                <div class="big-w" id="fW"></div>
+                <button class="spk" id="spkW" onclick="event.stopPropagation();say('w')" title="Hear word"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
+              </div>
+              <div class="c-hint">tap card to reveal translation</div>
+              <div class="sent-block" id="fSB">
+                <div class="sent-row">
+                  <button class="spk" id="spkS" onclick="event.stopPropagation();say('s')" title="Hear sentence"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
+                  <div class="sent-de" id="fSD"></div>
+                </div>
+                <div class="sent-en" id="fSE"></div>
+              </div>
+              <div class="f-hint">Tap to reveal →</div>
+            </div>
+            <div class="face face-back">
+              <div class="ctag ten">🇬🇧 English</div>
+              <div class="big-t" id="bT"></div>
+              <div class="c-hint">translation</div>
+              <div class="sent-block" id="bSB">
+                <div class="sent-row">
+                  <button class="spk" onclick="event.stopPropagation();say('s')" title="Hear sentence"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
+                  <div class="sent-de" id="bSD"></div>
+                </div>
+                <div class="sent-en" id="bSE"></div>
+              </div>
+              <div class="f-hint">← Tap to flip back</div>
+            </div>
+          </div>
+        </div>
+        <div class="dots" id="dots"></div>
+        <div class="fc-foot"><button class="del-btn" onclick="delCard()">🗑 Delete card</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let token = null;
+let user  = null;
+let cards = [];
+let cur   = 0;
+let flipped = false;
+let wT = null, sT = null;
+
+// ── Boot ───────────────────────────────────────────────────────────────────────
+(function init() {
+  const t = localStorage.getItem('dl_token');
+  const u = localStorage.getItem('dl_user');
+  if (t && u) {
+    try {
+      token = t;
+      user  = JSON.parse(u);
+      showApp();
+    } catch(e) {
+      localStorage.clear();
+      showAuth();
+    }
+  } else {
+    showAuth();
+  }
+})();
+
+// ── Page switching ─────────────────────────────────────────────────────────────
+function showAuth() {
+  document.getElementById('authPage').classList.add('show');
+  document.getElementById('appPage').classList.remove('show');
+}
+function showApp() {
+  document.getElementById('authPage').classList.remove('show');
+  document.getElementById('appPage').classList.add('show');
+  const ini = (user.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('uAv').textContent = ini;
+  document.getElementById('uNm').textContent = user.displayName;
+  loadCards();
+}
+
+// ── API helper ─────────────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(path, { ...opts, headers: { ...headers, ...(opts.headers||{}) } });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Server error');
+  return data;
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ── Auth tabs ──────────────────────────────────────────────────────────────────
+function authTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((b,i) =>
+    b.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1))
+  );
+  document.getElementById('fLogin').classList.toggle('active', tab==='login');
+  document.getElementById('fReg').classList.toggle('active', tab==='register');
+  document.getElementById('eLogin').classList.remove('show');
+  document.getElementById('eReg').classList.remove('show');
+}
+
+// ── Login ──────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('lUser').value.trim();
+  const password = document.getElementById('lPass').value;
+  const errEl = document.getElementById('eLogin');
+  const btn = document.getElementById('btnLogin');
+  errEl.classList.remove('show');
+  if (!username || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+    token = data.token;
+    user  = data.user;
+    localStorage.setItem('dl_token', token);
+    localStorage.setItem('dl_user', JSON.stringify(user));
+    showApp();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  } finally { btn.disabled = false; btn.textContent = 'Sign In'; }
+}
+
+// ── Register ───────────────────────────────────────────────────────────────────
+async function doRegister() {
+  const displayName = document.getElementById('rName').value.trim();
+  const username    = document.getElementById('rUser').value.trim();
+  const password    = document.getElementById('rPass').value;
+  const errEl = document.getElementById('eReg');
+  const btn = document.getElementById('btnReg');
+  errEl.classList.remove('show');
+  if (!displayName || !username || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    const data = await api('/api/auth/register', { method: 'POST', body: JSON.stringify({ displayName, username, password }) });
+    token = data.token;
+    user  = data.user;
+    localStorage.setItem('dl_token', token);
+    localStorage.setItem('dl_user', JSON.stringify(user));
+    showApp();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  } finally { btn.disabled = false; btn.textContent = 'Create Account'; }
+}
+
+// ── Logout ─────────────────────────────────────────────────────────────────────
+function doLogout() {
+  token = null; user = null; cards = [];
+  localStorage.removeItem('dl_token');
+  localStorage.removeItem('dl_user');
+  document.getElementById('lUser').value = '';
+  document.getElementById('lPass').value = '';
+  showAuth();
+}
+
+// ── Load cards ─────────────────────────────────────────────────────────────────
+async function loadCards() {
+  document.getElementById('fcLoad').style.display  = 'block';
+  document.getElementById('fcEmpty').style.display = 'none';
+  document.getElementById('fcArea').style.display  = 'none';
+  try {
+    cards = await api('/api/cards');
+    badge();
+    renderRecent();
+    renderCards();
+  } catch(e) {
+    toast('Could not load cards: ' + e.message);
+  } finally {
+    document.getElementById('fcLoad').style.display = 'none';
+  }
+}
+
+function badge() {
+  const n = cards.length;
+  document.getElementById('wBadge').textContent = n + (n === 1 ? ' word' : ' words');
+}
+
+// ── Recent list ────────────────────────────────────────────────────────────────
+function renderRecent() {
+  const sec = document.getElementById('recSec');
+  if (!cards.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  document.getElementById('recList').innerHTML = cards.slice(0, 6).map((c, i) =>
+    `<div class="rec-item">
+      <span class="ri-word">${esc(c.word)}</span>
+      <span class="ri-arr">→</span>
+      <span class="ri-tr">${esc(c.translation)}</span>
+      <button class="ri-del" onclick="rmCard('${c._id}',${i})">✕</button>
+    </div>`
+  ).join('');
+}
+
+async function rmCard(id, i) {
+  try {
+    await api('/api/cards/' + id, { method: 'DELETE' });
+    cards.splice(i, 1);
+    badge(); renderRecent();
+    if (document.getElementById('tCards').classList.contains('active')) renderCards();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ── Add card ───────────────────────────────────────────────────────────────────
+async function addCard() {
+  const word       = document.getElementById('iDE').value.trim();
+  const translation= document.getElementById('iEN').value.trim();
+  const sentenceDe = document.getElementById('iSDE').value.trim();
+  const sentenceEn = document.getElementById('iSEN').value.trim();
+
+  if (!word && !translation) { toast('Enter a German or English word first.'); return; }
+  const busy = document.getElementById('awDE').classList.contains('loading') ||
+               document.getElementById('awEN').classList.contains('loading');
+  if (busy) { toast('Translation is loading — please wait.'); return; }
+  if (!word || !translation) { toast('One side is missing — type it in manually.'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.classList.add('busy');
+  document.getElementById('saveLbl').textContent = 'Saving…';
+  try {
+    const card = await api('/api/cards', { method: 'POST', body: JSON.stringify({ word, translation, sentenceDe, sentenceEn }) });
+    cards.unshift(card);
+    badge(); renderRecent();
+    ['iDE','iEN','iSDE','iSEN'].forEach(id => document.getElementById(id).value = '');
+    toast('✓ Added: ' + word);
+    document.getElementById('iDE').focus();
+  } catch(e) { toast('Save failed: ' + e.message); }
+  finally {
+    btn.disabled = false; btn.classList.remove('busy');
+    document.getElementById('saveLbl').textContent = '+ Add Flashcard';
+  }
+}
+
+// ── Auto-translate ─────────────────────────────────────────────────────────────
+let isAutoFilling = false; // prevents feedback loop when auto-filling
+
+async function translate(text, targetId, wrapId, dir) {
+  if (!text || text.trim().length < 2) return;
+  const wrap = document.getElementById(wrapId);
+  const el   = document.getElementById(targetId);
+  wrap.classList.add('loading');
+  el.placeholder = 'translating…';
+  try {
+    const d = await api('/api/translate', { method: 'POST', body: JSON.stringify({ text: text.trim(), direction: dir }) });
+    isAutoFilling = true;
+    el.value = d.translation || '';
+    el.placeholder = '';
+  } catch(e) { el.placeholder = 'failed — type manually'; }
+  finally { wrap.classList.remove('loading'); isAutoFilling = false; }
+}
+function onDE()  { if (isAutoFilling) return; clearTimeout(wT); const v = document.getElementById('iDE').value.trim();  if (!v) return; wT = setTimeout(() => translate(v,'iEN','awEN','de-en'), 650); }
+function onEN()  { if (isAutoFilling) return; clearTimeout(wT); const v = document.getElementById('iEN').value.trim();  if (!v) return; wT = setTimeout(() => translate(v,'iDE','awDE','en-de'), 650); }
+function onSDE() { if (isAutoFilling) return; clearTimeout(sT); const v = document.getElementById('iSDE').value.trim(); if (!v) return; sT = setTimeout(() => translate(v,'iSEN','awSEN','de-en'), 650); }
+function onSEN() { if (isAutoFilling) return; clearTimeout(sT); const v = document.getElementById('iSEN').value.trim(); if (!v) return; sT = setTimeout(() => translate(v,'iSDE','awSDE','en-de'), 650); }
+
+// ── Tabs ───────────────────────────────────────────────────────────────────────
+function goTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(t==='add'&&i===0)||(t==='cards'&&i===1)));
+  document.getElementById('tAdd').classList.toggle('active', t==='add');
+  document.getElementById('tCards').classList.toggle('active', t==='cards');
+  if (t === 'cards') renderCards();
+}
+
+// ── Render cards ───────────────────────────────────────────────────────────────
+function renderCards() {
+  const n = cards.length;
+  document.getElementById('fcLoad').style.display  = 'none';
+  document.getElementById('fcEmpty').style.display = n === 0 ? 'block' : 'none';
+  document.getElementById('fcArea').style.display  = n === 0 ? 'none'  : 'block';
+  if (!n) return;
+  if (cur >= n) cur = n - 1;
+  flipped = false;
+  document.getElementById('flipper').classList.remove('flipped');
+  const c = cards[cur];
+  document.getElementById('fW').textContent = c.word;
+  document.getElementById('bT').textContent = c.translation;
+  ['fSD','bSD'].forEach(id => document.getElementById(id).textContent = c.sentenceDe || '');
+  ['fSE','bSE'].forEach(id => document.getElementById(id).textContent = c.sentenceEn || '');
+  const hs = !!c.sentenceDe;
+  document.getElementById('fSB').style.display = hs ? 'block' : 'none';
+  document.getElementById('bSB').style.display = hs ? 'block' : 'none';
+  document.getElementById('cNum').textContent = cur + 1;
+  document.getElementById('cTot').textContent = n;
+  document.getElementById('btnPrev').disabled = cur === 0;
+  document.getElementById('btnNext').disabled = cur === n - 1;
+  const dc = document.getElementById('dots');
+  dc.innerHTML = '';
+  for (let i = 0; i < Math.min(n, 30); i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === cur ? ' on' : '');
+    const idx = i; d.onclick = () => { cur = idx; renderCards(); };
+    dc.appendChild(d);
+  }
+}
+
+function flip() { flipped = !flipped; document.getElementById('flipper').classList.toggle('flipped', flipped); }
+function nav(d) { cur += d; renderCards(); }
+
+async function delCard() {
+  if (!confirm('Delete this card?')) return;
+  const id = cards[cur]._id;
+  try {
+    await api('/api/cards/' + id, { method: 'DELETE' });
+    cards.splice(cur, 1);
+    badge(); renderRecent(); renderCards();
+    toast('Card deleted.');
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ── Speech ─────────────────────────────────────────────────────────────────────
+function say(type) {
+  if (!window.speechSynthesis) { toast('Speech not supported in this browser.'); return; }
+  const c = cards[cur];
+  const text = type === 'w' ? c.word : c.sentenceDe;
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const btn = document.getElementById(type === 'w' ? 'spkW' : 'spkS');
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE'; u.rate = 0.88;
+  const v = window.speechSynthesis.getVoices().find(v => v.lang.startsWith('de'));
+  if (v) u.voice = v;
+  btn && btn.classList.add('on');
+  u.onend = u.onerror = () => btn && btn.classList.remove('on');
+  window.speechSynthesis.speak(u);
+}
+
+// ── Keyboard ───────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (!document.getElementById('tCards').classList.contains('active')) return;
+  if (e.key === 'ArrowRight' && cur < cards.length - 1) nav(1);
+  if (e.key === 'ArrowLeft'  && cur > 0) nav(-1);
+  if (e.key === ' ') { e.preventDefault(); flip(); }
+});
+
+// Enter key shortcuts on auth
+document.getElementById('lPass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+document.getElementById('rPass').addEventListener('keydown', e => { if (e.key==='Enter') doRegister(); });
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
